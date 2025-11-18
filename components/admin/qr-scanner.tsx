@@ -14,6 +14,7 @@ export function QRScanner({ userId }: { userId: string }) {
   const [isProcessing, setIsProcessing] = useState(false)
   const [cameraError, setCameraError] = useState<string | null>(null)
   const scannerRef = useRef<Html5Qrcode | null>(null)
+  const scannerElementRef = useRef<HTMLDivElement | null>(null)
   const lastScannedCode = useRef<string>("")
   const scannerId = "qr-reader"
 
@@ -70,17 +71,21 @@ export function QRScanner({ userId }: { userId: string }) {
       return
     }
 
+    // Cambiar el estado primero para que el elemento esté visible
+    setScanning(true)
+    setResult(null)
+    
+    // Esperar a que React renderice el elemento
+    await new Promise(resolve => setTimeout(resolve, 200))
+
     try {
-      // Asegurarse de que el elemento DOM existe antes de inicializar
-      const element = document.getElementById(scannerId)
+      // Usar el ref del elemento o buscar por ID
+      const element = scannerElementRef.current || document.getElementById(scannerId)
+      
       if (!element) {
-        // Si no existe, esperar un momento y verificar de nuevo
-        await new Promise(resolve => setTimeout(resolve, 100))
-        const elementRetry = document.getElementById(scannerId)
-        if (!elementRetry) {
-          setCameraError('Error: El elemento del escáner no está disponible. Por favor, refresca la página.')
-          return
-        }
+        setScanning(false)
+        setCameraError('Error: El elemento del escáner no está disponible. Por favor, refresca la página.')
+        return
       }
 
       // Limpiar cualquier instancia anterior
@@ -93,15 +98,11 @@ export function QRScanner({ userId }: { userId: string }) {
         scannerRef.current = null
       }
 
+      // Limpiar el contenido del elemento por si acaso
+      element.innerHTML = ''
+
       const html5QrCode = new Html5Qrcode(scannerId)
       scannerRef.current = html5QrCode
-
-      // Cambiar el estado ANTES de iniciar para que el elemento esté visible
-      setScanning(true)
-      setResult(null)
-      
-      // Pequeño delay para asegurar que el DOM se actualizó
-      await new Promise(resolve => setTimeout(resolve, 50))
 
       await html5QrCode.start(
         { facingMode: "environment" },
@@ -134,6 +135,7 @@ export function QRScanner({ userId }: { userId: string }) {
       
       // Mensajes de error más específicos
       const errorMessage = err.message || err.toString() || 'Error desconocido'
+      console.error("Error completo:", err)
       
       if (errorMessage.includes('Permission') || errorMessage.includes('permission') || errorMessage.includes('NotAllowedError')) {
         setCameraError('Permisos de cámara denegados. Por favor, permite el acceso a la cámara en la configuración de tu navegador.')
@@ -141,7 +143,7 @@ export function QRScanner({ userId }: { userId: string }) {
         setCameraError('No se encontró ninguna cámara. Verifica que tu dispositivo tenga una cámara disponible.')
       } else if (errorMessage.includes('NotReadableError') || errorMessage.includes('TrackStartError')) {
         setCameraError('La cámara está siendo usada por otra aplicación. Cierra otras apps que usen la cámara.')
-      } else if (errorMessage.includes('element') || errorMessage.includes('DOM')) {
+      } else if (errorMessage.includes('element') || errorMessage.includes('DOM') || errorMessage.includes('getElementById')) {
         setCameraError('Error al inicializar el escáner. Por favor, refresca la página e intenta de nuevo.')
       } else {
         setCameraError(`Error al iniciar la cámara: ${errorMessage}. Si el problema persiste, intenta refrescar la página.`)
@@ -315,7 +317,11 @@ export function QRScanner({ userId }: { userId: string }) {
             </div>
           ) : (
             <div className="space-y-4">
-              <div id={scannerId} className="mx-auto max-w-md" />
+              <div 
+                id={scannerId} 
+                ref={scannerElementRef}
+                className="mx-auto max-w-md" 
+              />
               {isProcessing && (
                 <div className="flex items-center justify-center gap-2 rounded-lg bg-blue-500/20 p-3 text-blue-400">
                   <Loader2 className="h-4 w-4 animate-spin" />
