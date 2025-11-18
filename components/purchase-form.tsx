@@ -230,7 +230,22 @@ export function PurchaseForm() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form 
+        onSubmit={(e) => {
+          // Solo permitir submit en el último paso
+          if (currentStep === 4) {
+            handleSubmit(onSubmit)(e)
+          } else {
+            e.preventDefault()
+          }
+        }}
+        onKeyDown={(e) => {
+          // Prevenir que Enter envíe el formulario si no estamos en el último paso
+          if (e.key === "Enter" && currentStep < 4) {
+            e.preventDefault()
+          }
+        }}
+      >
         <Card className="border-white/10 bg-white/5 backdrop-blur-sm">
           <CardHeader>
             <CardTitle className="text-white">{steps[currentStep - 1].title}</CardTitle>
@@ -304,6 +319,15 @@ export function PurchaseForm() {
                           clearErrors("quantity")
                         }
                       }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault()
+                          // Solo avanzar si la cantidad es válida
+                          if (formData.quantity && formData.quantity >= 1) {
+                            handleNext()
+                          }
+                        }
+                      }}
                       className="border-white/20 bg-white/5 text-white"
                     />
                     {errors.quantity && (!formData.quantity || formData.quantity < 1) && (
@@ -355,6 +379,29 @@ export function PurchaseForm() {
                             }
                           })
                           setValue(`names.${index}`, value, { shouldValidate: true })
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault()
+                            // Si no es el último nombre, ir al siguiente input
+                            if (index < quantity - 1) {
+                              const nextInput = document.getElementById(`name-${index + 1}`)
+                              if (nextInput) {
+                                nextInput.focus()
+                              }
+                            } else {
+                              // Si es el último nombre, avanzar al siguiente paso si todos están llenos
+                              const allNamesFilled = formData.names?.slice(0, quantity).every((name, i) => {
+                                if (i === index) {
+                                  return (e.target as HTMLInputElement).value.trim() !== ""
+                                }
+                                return name && typeof name === 'string' && name.trim() !== ""
+                              })
+                              if (allNamesFilled) {
+                                handleNext()
+                              }
+                            }
+                          }
                         }}
                         className="border-white/20 bg-white/5 text-white"
                       />
