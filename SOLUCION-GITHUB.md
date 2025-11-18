@@ -114,3 +114,4 @@ Si tienes archivos muy grandes (>50MB), GitHub puede rechazarlos. En ese caso:
 - Usa Git LFS (Large File Storage)
 - O comprime las imágenes antes de subirlas
 
+

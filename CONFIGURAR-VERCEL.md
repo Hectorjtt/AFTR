@@ -101,3 +101,4 @@ Las variables que empiezan con `NEXT_PUBLIC_` son **públicas** y se incluyen en
 - Supabase usa Row Level Security (RLS) para proteger los datos
 - Solo los usuarios autenticados pueden acceder a datos sensibles
 
+
