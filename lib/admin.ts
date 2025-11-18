@@ -224,20 +224,11 @@ export async function rejectPurchaseRequest(
 
 // Función para obtener todos los tickets (para admin)
 export async function getAllTickets() {
+  // Simplificar la consulta para evitar problemas con foreign keys
+  // Solo obtenemos los campos que necesitamos directamente de tickets
   const { data, error } = await supabase
     .from('tickets')
-    .select(`
-      *,
-      user:user_id (
-        id,
-        email
-      ),
-      purchase_requests (
-        id,
-        table_id,
-        quantity
-      )
-    `)
+    .select('id, qr_code, cover_name, table_id, status, scanned_at, scanned_by, created_at, user_id, purchase_request_id')
     .order('created_at', { ascending: false })
 
   if (error) {
