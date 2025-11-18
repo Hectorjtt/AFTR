@@ -12,11 +12,64 @@ export function QRScanner({ userId }: { userId: string }) {
   const [result, setResult] = useState<{ success: boolean; message: string; ticket?: any } | null>(null)
   const [manualCode, setManualCode] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
+  const [cameraError, setCameraError] = useState<string | null>(null)
   const scannerRef = useRef<Html5Qrcode | null>(null)
   const lastScannedCode = useRef<string>("")
   const scannerId = "qr-reader"
 
+  // Verificar permisos de cámara antes de iniciar
+  const checkCameraPermissions = async (): Promise<boolean> => {
+    try {
+      // Verificar si estamos en HTTPS o localhost
+      const isSecure = window.location.protocol === 'https:' || window.location.hostname === 'localhost'
+      if (!isSecure) {
+        setCameraError('La cámara requiere HTTPS. Por favor, accede al sitio usando https://')
+        return false
+      }
+
+      // Verificar si el navegador soporta getUserMedia
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        setCameraError('Tu navegador no soporta acceso a la cámara. Por favor, usa Chrome, Safari o Firefox.')
+        return false
+      }
+
+      // Intentar obtener permisos de cámara
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+        // Si llegamos aquí, tenemos permisos. Detener el stream inmediatamente.
+        stream.getTracks().forEach(track => track.stop())
+        setCameraError(null)
+        return true
+      } catch (permissionError: any) {
+        console.error('Error de permisos:', permissionError)
+        
+        if (permissionError.name === 'NotAllowedError' || permissionError.name === 'PermissionDeniedError') {
+          setCameraError('Permisos de cámara denegados. Por favor, permite el acceso a la cámara en la configuración de tu navegador.')
+        } else if (permissionError.name === 'NotFoundError' || permissionError.name === 'DevicesNotFoundError') {
+          setCameraError('No se encontró ninguna cámara. Verifica que tu dispositivo tenga una cámara disponible.')
+        } else if (permissionError.name === 'NotReadableError' || permissionError.name === 'TrackStartError') {
+          setCameraError('La cámara está siendo usada por otra aplicación. Cierra otras apps que usen la cámara.')
+        } else {
+          setCameraError(`Error al acceder a la cámara: ${permissionError.message || 'Error desconocido'}`)
+        }
+        return false
+      }
+    } catch (error: any) {
+      console.error('Error al verificar permisos:', error)
+      setCameraError('Error al verificar permisos de cámara. Por favor, intenta de nuevo.')
+      return false
+    }
+  }
+
   const startScanning = async () => {
+    setCameraError(null)
+    
+    // Verificar permisos primero
+    const hasPermissions = await checkCameraPermissions()
+    if (!hasPermissions) {
+      return
+    }
+
     try {
       const html5QrCode = new Html5Qrcode(scannerId)
       scannerRef.current = html5QrCode
@@ -37,9 +90,18 @@ export function QRScanner({ userId }: { userId: string }) {
 
       setScanning(true)
       setResult(null)
-    } catch (err) {
+      setCameraError(null)
+    } catch (err: any) {
       console.error("Error al iniciar escáner:", err)
-      alert("Error al iniciar la cámara. Asegúrate de dar permisos de cámara.")
+      
+      // Mensajes de error más específicos
+      if (err.message?.includes('Permission') || err.message?.includes('permission')) {
+        setCameraError('Permisos de cámara denegados. Por favor, permite el acceso a la cámara en la configuración de tu navegador.')
+      } else if (err.message?.includes('NotFound') || err.message?.includes('not found')) {
+        setCameraError('No se encontró ninguna cámara. Verifica que tu dispositivo tenga una cámara disponible.')
+      } else {
+        setCameraError(`Error al iniciar la cámara: ${err.message || 'Error desconocido'}. Asegúrate de dar permisos de cámara.`)
+      }
     }
   }
 
@@ -130,11 +192,47 @@ export function QRScanner({ userId }: { userId: string }) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {cameraError && (
+            <Card className="border-red-500/50 bg-red-500/10">
+              <CardContent className="pt-6">
+                <div className="flex items-start gap-3">
+                  <XCircle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="font-medium text-red-400 mb-2">Error de Cámara</p>
+                    <p className="text-sm text-red-300/80">{cameraError}</p>
+                    <div className="mt-3 space-y-2 text-xs text-red-300/60">
+                      <p><strong>Soluciones:</strong></p>
+                      <ul className="list-disc list-inside space-y-1 ml-2">
+                        <li>Verifica que el sitio esté usando HTTPS (https://)</li>
+                        <li>Ve a Configuración del navegador → Permisos → Cámara</li>
+                        <li>Asegúrate de que el sitio tenga permisos de cámara</li>
+                        <li>Cierra otras apps que puedan estar usando la cámara</li>
+                        <li>Intenta refrescar la página y volver a intentar</li>
+                      </ul>
+                    </div>
+                    <Button
+                      onClick={() => {
+                        setCameraError(null)
+                        startScanning()
+                      }}
+                      variant="outline"
+                      size="sm"
+                      className="mt-4 border-red-500/50 text-red-400 hover:bg-red-500/20"
+                    >
+                      Intentar de Nuevo
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          
           {!scanning ? (
             <div className="space-y-4">
               <Button
                 onClick={startScanning}
                 className="w-full bg-orange-500 text-white hover:bg-orange-600"
+                disabled={!!cameraError}
               >
                 <Camera className="mr-2 h-4 w-4" />
                 Iniciar Escáner

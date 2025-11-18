@@ -8,23 +8,51 @@ Vercel es la plataforma creada por el equipo de Next.js, por lo que es la más f
 
 #### Pasos:
 
-1. **Instalar Vercel CLI** (opcional, también puedes usar la interfaz web):
-   ```bash
-   npm i -g vercel
-   ```
+1. **Conectar Repositorio en Vercel**:
+   - Ve a [vercel.com](https://vercel.com) e inicia sesión
+   - Haz clic en "Add New..." > "Project"
+   - Conecta tu repositorio de GitHub (Hectorjtt/AFTR)
+   - Vercel detectará automáticamente que es Next.js
 
-2. **Desplegar**:
-   ```bash
-   vercel
-   ```
-   O simplemente conecta tu repositorio de GitHub en [vercel.com](https://vercel.com)
+2. **⚠️ IMPORTANTE: Configurar Variables de Entorno ANTES del primer deploy**:
+   
+   **PASO CRÍTICO - Haz esto ANTES de hacer clic en "Deploy":**
+   
+   - En la pantalla de configuración del proyecto, busca la sección **"Environment Variables"**
+   - Haz clic en "Add" o el botón "+"
+   - Agrega estas dos variables:
+     
+     **Variable 1:**
+     - Key: `NEXT_PUBLIC_SUPABASE_URL`
+     - Value: `https://tu-proyecto.supabase.co` (reemplaza con tu URL real)
+     - Environments: ✅ Production, ✅ Preview, ✅ Development
+     
+     **Variable 2:**
+     - Key: `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+     - Value: `tu-clave-anonima-aqui` (reemplaza con tu clave real)
+     - Environments: ✅ Production, ✅ Preview, ✅ Development
+   
+   - Haz clic en "Save" después de agregar cada variable
 
-3. **Configurar Variables de Entorno**:
-   En el dashboard de Vercel, ve a Settings > Environment Variables y agrega:
-   - `NEXT_PUBLIC_SUPABASE_URL` = tu URL de Supabase
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` = tu clave anónima de Supabase
+3. **Desplegar**:
+   - Haz clic en "Deploy"
+   - Espera a que termine el build (puede tardar 1-2 minutos)
+   - Si ves un error sobre variables de entorno, vuelve al paso 2
 
-4. **¡Listo!** Vercel detecta automáticamente que es Next.js y configura todo.
+4. **Verificar el Despliegue**:
+   - Una vez completado, verás una URL como `tu-proyecto.vercel.app`
+   - Haz clic para abrir tu sitio
+   - Si todo está bien, deberías ver tu página funcionando
+
+#### 🔧 Si el Build Falla con Error de Variables de Entorno:
+
+1. Ve a tu proyecto en Vercel Dashboard
+2. Ve a **Settings** > **Environment Variables**
+3. Verifica que ambas variables estén configuradas:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+4. Asegúrate de que estén marcadas para **Production**, **Preview** y **Development**
+5. Si las agregaste después del primer deploy, ve a **Deployments** y haz clic en los 3 puntos (...) del último deployment > **Redeploy**
 
 ---
 
@@ -92,9 +120,28 @@ Después de desplegar:
 
 ## Solución de Problemas
 
-### Error: "NEXT_PUBLIC_SUPABASE_URL is not defined"
-- Verifica que las variables de entorno estén configuradas en tu plataforma de despliegue
-- Asegúrate de que empiecen con `NEXT_PUBLIC_`
+### Error: "supabaseUrl is required" o "NEXT_PUBLIC_SUPABASE_URL is not defined"
+
+**Este es el error más común. Solución:**
+
+1. Ve a tu proyecto en Vercel Dashboard
+2. Ve a **Settings** > **Environment Variables**
+3. Verifica que tengas estas dos variables:
+   - `NEXT_PUBLIC_SUPABASE_URL` (con tu URL completa de Supabase)
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` (con tu clave anónima)
+4. Asegúrate de que estén habilitadas para **Production**, **Preview** y **Development**
+5. Si las agregaste después del deploy, necesitas **Redeploy**:
+   - Ve a **Deployments**
+   - Haz clic en los 3 puntos (...) del último deployment
+   - Selecciona **Redeploy**
+6. Espera a que termine el nuevo build
+
+**Para obtener tus credenciales de Supabase:**
+- Ve a tu proyecto en [supabase.com](https://supabase.com)
+- Ve a **Settings** > **API**
+- Copia:
+  - **Project URL** → va en `NEXT_PUBLIC_SUPABASE_URL`
+  - **anon public** key → va en `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
 ### El scanner no funciona en el celular
 - Verifica que el sitio esté usando HTTPS (requerido para acceder a la cámara)
