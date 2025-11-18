@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { PendingPayments } from "./pending-payments"
 import { QRScanner } from "./qr-scanner"
+
 import { TableDashboard } from "./table-dashboard"
 
 export function AdminPanel({ userId }: { userId: string }) {
