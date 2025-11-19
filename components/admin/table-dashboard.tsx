@@ -1,10 +1,15 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { getAllTickets } from "@/lib/admin"
+import { getAllTickets, moveCoverToTable } from "@/lib/admin"
+import { eventConfig } from "@/lib/event-config"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { CheckCircle, Clock, XCircle, Users, Loader2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { CheckCircle, Clock, XCircle, Users, Loader2, Move } from "lucide-react"
+import { toast } from "sonner"
 
 interface Ticket {
   id: number
@@ -30,6 +35,10 @@ export function TableDashboard() {
   const [tables, setTables] = useState<GroupedTable[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [movingCover, setMovingCover] = useState<number | null>(null)
+  const [moveDialogOpen, setMoveDialogOpen] = useState(false)
+  const [selectedCover, setSelectedCover] = useState<Ticket | null>(null)
+  const [selectedNewTable, setSelectedNewTable] = useState<string>("")
 
   useEffect(() => {
     loadData()
@@ -134,6 +143,54 @@ export function TableDashboard() {
       default:
         return null
     }
+  }
+
+  const handleMoveCover = (cover: Ticket) => {
+    setSelectedCover(cover)
+    setSelectedNewTable("")
+    setMoveDialogOpen(true)
+  }
+
+  const confirmMoveCover = async () => {
+    if (!selectedCover || !selectedNewTable) {
+      toast.error("Por favor selecciona una mesa destino")
+      return
+    }
+
+    if (selectedCover.table_id === selectedNewTable) {
+      toast.error("El cover ya está en esa mesa")
+      setMoveDialogOpen(false)
+      return
+    }
+
+    setMovingCover(selectedCover.id)
+    
+    try {
+      const result = await moveCoverToTable(selectedCover.id, selectedNewTable)
+      
+      if (result.success) {
+        toast.success(`Cover movido exitosamente a Mesa ${selectedNewTable.replace('mesa-', '')}`)
+        setMoveDialogOpen(false)
+        setSelectedCover(null)
+        setSelectedNewTable("")
+        // Recargar los datos
+        await loadData()
+      } else {
+        toast.error(result.error || "Error al mover el cover")
+      }
+    } catch (error: any) {
+      console.error("Error al mover cover:", error)
+      toast.error("Error al mover el cover")
+    } finally {
+      setMovingCover(null)
+    }
+  }
+
+  // Obtener lista de mesas disponibles (excluyendo la mesa actual del cover)
+  const getAvailableTables = () => {
+    return eventConfig.tables.filter(
+      table => !selectedCover || table.id !== selectedCover.table_id
+    )
   }
 
   if (loading) {
@@ -265,8 +322,95 @@ export function TableDashboard() {
                         )}
                       </div>
                     </div>
-                    <div className="ml-4">
+                    <div className="ml-4 flex items-center gap-2">
                       {getStatusBadge(cover.status)}
+                      <Dialog 
+                        open={moveDialogOpen && selectedCover?.id === cover.id} 
+                        onOpenChange={(open) => {
+                          if (!open) {
+                            setMoveDialogOpen(false)
+                            setSelectedCover(null)
+                            setSelectedNewTable("")
+                          }
+                        }}
+                      >
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleMoveCover(cover)}
+                            className="border-orange-500/50 text-orange-400 bg-orange-500/10 hover:bg-orange-500/20"
+                          >
+                            <Move className="h-3 w-3 mr-1" />
+                            Mover
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="border-white/10 bg-black/95 backdrop-blur-sm">
+                          <DialogHeader>
+                            <DialogTitle className="text-white">Mover Cover</DialogTitle>
+                            <DialogDescription className="text-white/60">
+                              Mover <strong className="text-white">{cover.cover_name}</strong> a otra mesa
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="space-y-4 py-4">
+                            <div>
+                              <p className="text-sm text-white/80 mb-2">Mesa actual:</p>
+                              <p className="text-white font-medium">Mesa {cover.table_id.replace('mesa-', '')}</p>
+                            </div>
+                            <div>
+                              <label className="text-sm text-white/80 mb-2 block">
+                                Selecciona la mesa destino:
+                              </label>
+                              <Select
+                                value={selectedNewTable}
+                                onValueChange={setSelectedNewTable}
+                              >
+                                <SelectTrigger className="border-white/20 bg-white/5 text-white">
+                                  <SelectValue placeholder="Selecciona una mesa" />
+                                </SelectTrigger>
+                                <SelectContent className="border-white/10 bg-black/95">
+                                  {getAvailableTables().map((table) => (
+                                    <SelectItem
+                                      key={table.id}
+                                      value={table.id}
+                                      className="text-white focus:bg-white/10"
+                                    >
+                                      {table.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="flex justify-end gap-2 pt-4">
+                              <Button
+                                variant="outline"
+                                onClick={() => {
+                                  setMoveDialogOpen(false)
+                                  setSelectedCover(null)
+                                  setSelectedNewTable("")
+                                }}
+                                className="border-white/20 bg-white/5 text-white hover:bg-white/10"
+                              >
+                                Cancelar
+                              </Button>
+                              <Button
+                                onClick={confirmMoveCover}
+                                disabled={!selectedNewTable || movingCover === cover.id}
+                                className="bg-orange-500 text-black hover:bg-orange-400 disabled:opacity-50"
+                              >
+                                {movingCover === cover.id ? (
+                                  <>
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                    Moviendo...
+                                  </>
+                                ) : (
+                                  "Confirmar Movimiento"
+                                )}
+                              </Button>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                     </div>
                   </div>
                 ))}

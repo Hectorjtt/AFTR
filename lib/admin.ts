@@ -239,3 +239,32 @@ export async function getAllTickets() {
   return { data, error: null }
 }
 
+// Función para mover un cover de una mesa a otra
+export async function moveCoverToTable(
+  ticketId: number,
+  newTableId: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    console.log('[moveCoverToTable] Moviendo cover:', { ticketId, newTableId })
+    
+    // Asegurar que el table_id tenga el formato correcto
+    const formattedTableId = newTableId.startsWith('mesa-') ? newTableId : `mesa-${newTableId}`
+    
+    const { error: updateError } = await supabase
+      .from('tickets')
+      .update({ table_id: formattedTableId })
+      .eq('id', ticketId)
+
+    if (updateError) {
+      console.error('[moveCoverToTable] Error al actualizar:', updateError)
+      return { success: false, error: updateError.message }
+    }
+
+    console.log('[moveCoverToTable] Cover movido exitosamente')
+    return { success: true }
+  } catch (error: any) {
+    console.error('[moveCoverToTable] Excepción:', error)
+    return { success: false, error: error.message || 'Error desconocido' }
+  }
+}
+
