@@ -131,18 +131,12 @@ export function TableDashboard() {
   }
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'approved':
-        return <Badge variant="outline" className="border-green-500/50 text-green-400 bg-green-500/10">Aprobado</Badge>
-      case 'used':
-        return <Badge variant="outline" className="border-blue-500/50 text-blue-400 bg-blue-500/10">Usado</Badge>
-      case 'pending':
-        return <Badge variant="outline" className="border-yellow-500/50 text-yellow-400 bg-yellow-500/10">Pendiente</Badge>
-      case 'cancelled':
-        return <Badge variant="outline" className="border-red-500/50 text-red-400 bg-red-500/10">Cancelado</Badge>
-      default:
-        return null
+    // Solo mostrar etiqueta si está usado, los aprobados no necesitan etiqueta
+    if (status === 'used') {
+      return <Badge variant="outline" className="border-blue-500/50 text-blue-400 bg-blue-500/10">Usado</Badge>
     }
+    // No mostrar etiqueta para aprobados, pendientes o cancelados
+    return null
   }
 
   const handleMoveCover = (cover: Ticket) => {
@@ -305,13 +299,7 @@ export function TableDashboard() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-3 gap-4">
-            <div className="rounded-lg border border-green-500/30 bg-green-500/10 p-4 text-center">
-              <div className="text-2xl font-bold text-green-400">
-                {tables.reduce((sum, table) => sum + table.approvedCount, 0)}
-              </div>
-              <div className="text-sm text-green-300/80">Aprobados</div>
-            </div>
+          <div className="grid grid-cols-2 gap-4">
             <div className="rounded-lg border border-blue-500/30 bg-blue-500/10 p-4 text-center">
               <div className="text-2xl font-bold text-blue-400">
                 {tables.reduce((sum, table) => sum + table.usedCount, 0)}
@@ -342,18 +330,11 @@ export function TableDashboard() {
                     {table.totalCount} {table.totalCount === 1 ? 'cover' : 'covers'}
                   </CardDescription>
                 </div>
-                <div className="flex gap-2">
-                  {table.approvedCount > 0 && (
-                    <Badge variant="outline" className="border-green-500/50 text-green-400 bg-green-500/10">
-                      {table.approvedCount} aprobado{table.approvedCount !== 1 ? 's' : ''}
-                    </Badge>
-                  )}
-                  {table.usedCount > 0 && (
-                    <Badge variant="outline" className="border-blue-500/50 text-blue-400 bg-blue-500/10">
-                      {table.usedCount} usado{table.usedCount !== 1 ? 's' : ''}
-                    </Badge>
-                  )}
-                </div>
+                {table.usedCount > 0 && (
+                  <Badge variant="outline" className="border-blue-500/50 text-blue-400 bg-blue-500/10">
+                    {table.usedCount} usado{table.usedCount !== 1 ? 's' : ''}
+                  </Badge>
+                )}
               </div>
             </CardHeader>
             <CardContent>
