@@ -79,7 +79,7 @@ export function Header() {
           </Link>
 
           <nav className="flex items-center gap-6">
-            <Link href="/" className="text-sm font-medium text-white/70 transition-colors hover:text-white">
+            <Link href="/" className="hidden text-sm font-medium text-white/70 transition-colors hover:text-white">
               Inicio
             </Link>
             {user && (
