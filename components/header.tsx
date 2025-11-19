@@ -92,7 +92,7 @@ export function Header() {
                 Admin
               </Link>
             )}
-            <Link href="#contacto" className="text-xs md:text-sm font-medium text-white/70 transition-colors hover:text-white whitespace-nowrap">
+            <Link href="#contacto" className="hidden text-xs md:text-sm font-medium text-white/70 transition-colors hover:text-white whitespace-nowrap">
               Contacto
             </Link>
             {user ? (
