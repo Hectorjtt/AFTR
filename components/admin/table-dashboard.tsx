@@ -188,10 +188,10 @@ export function TableDashboard() {
 
   // Generar lista completa de todas las mesas del mapa
   const getAllTablesFromMap = () => {
-    // Mesas del Segundo Anillo (10-16, 60-64)
+    // Mesas del Segundo Anillo (10-16, 60-65)
     const segundoAnillo = [
       ...Array.from({ length: 7 }, (_, i) => i + 10), // 10-16
-      ...Array.from({ length: 5 }, (_, i) => i + 60), // 60-64
+      ...Array.from({ length: 6 }, (_, i) => i + 60), // 60-65
     ].map(id => ({
       id: `mesa-${id}`,
       name: `Mesa ${id} - Segundo Anillo`,
