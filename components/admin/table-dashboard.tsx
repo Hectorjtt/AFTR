@@ -186,9 +186,64 @@ export function TableDashboard() {
     }
   }
 
+  // Generar lista completa de todas las mesas del mapa
+  const getAllTablesFromMap = () => {
+    // Mesas del Segundo Anillo (10-16, 60-64)
+    const segundoAnillo = [
+      ...Array.from({ length: 7 }, (_, i) => i + 10), // 10-16
+      ...Array.from({ length: 5 }, (_, i) => i + 60), // 60-64
+    ].map(id => ({
+      id: `mesa-${id}`,
+      name: `Mesa ${id} - Segundo Anillo`,
+      zone: "Segundo Anillo"
+    }))
+
+    // Mesas del Primer Anillo (20-25, 50-55)
+    const primerAnillo = [
+      ...Array.from({ length: 6 }, (_, i) => i + 20), // 20-25
+      ...Array.from({ length: 6 }, (_, i) => i + 50), // 50-55
+    ].map(id => ({
+      id: `mesa-${id}`,
+      name: `Mesa ${id} - Primer Anillo`,
+      zone: "Primer Anillo"
+    }))
+
+    // Mesas en Pista (31-36, 41-46)
+    const mesasPista = [
+      ...Array.from({ length: 6 }, (_, i) => i + 31), // 31-36
+      ...Array.from({ length: 6 }, (_, i) => i + 41), // 41-46
+    ].map(id => ({
+      id: `mesa-${id}`,
+      name: `Mesa ${id} - Pista`,
+      zone: "Pista"
+    }))
+
+    // Mesas adicionales del mapa (2-6)
+    const mesasAdicionales = [2, 3, 4, 5, 6].map(id => ({
+      id: `mesa-${id}`,
+      name: `Mesa ${id}`,
+      zone: "Pista"
+    }))
+
+    // Combinar todas las mesas y ordenar por número
+    const allTables = [
+      ...segundoAnillo,
+      ...primerAnillo,
+      ...mesasPista,
+      ...mesasAdicionales,
+    ].sort((a, b) => {
+      const numA = parseInt(a.id.replace('mesa-', '')) || 0
+      const numB = parseInt(b.id.replace('mesa-', '')) || 0
+      return numA - numB
+    })
+
+    return allTables
+  }
+
   // Obtener lista de mesas disponibles (excluyendo la mesa actual del cover)
   const getAvailableTables = () => {
-    return eventConfig.tables.filter(
+    const allTables = getAllTablesFromMap()
+    return allTables.filter(
       table => !selectedCover || table.id !== selectedCover.table_id
     )
   }
