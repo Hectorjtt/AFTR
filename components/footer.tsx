@@ -43,7 +43,7 @@ export function Footer() {
             <p className="text-sm">
               ¿Tienes preguntas? Contáctanos en{" "}
               <a href="mailto:info@aftr.events" className="text-orange-500 hover:underline">
-                info@aftr.events
+                Instagram
               </a>
             </p>
           </div>
