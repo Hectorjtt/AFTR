@@ -77,7 +77,7 @@ export const eventConfig = {
     holder: "Aftr Events",
   },
   social: {
-    instagram: "https://instagram.com/aftr.events",
+    instagram: "https://www.instagram.com/aftr.mx/",
     twitter: "https://twitter.com/aftr_events",
   },
 }

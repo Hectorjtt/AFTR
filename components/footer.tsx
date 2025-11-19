@@ -15,18 +15,6 @@ export function Footer() {
 
           <div className="mb-8 flex items-center justify-center gap-4">
             <Link
-              href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-white/5 text-white transition-all hover:scale-110 hover:border-orange-500 hover:bg-orange-500/20"
-            >
-              <span className="sr-only">Twitter/X</span>
-              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-              </svg>
-            </Link>
-
-            <Link
               href={eventConfig.social.instagram}
               target="_blank"
               rel="noopener noreferrer"
