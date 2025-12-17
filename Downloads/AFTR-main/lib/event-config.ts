@@ -12,7 +12,7 @@ export const eventConfig = {
     icons: ["🦇", "🎃", "🧙", "⚰️"],
   },
   event: {
-    name: "BALBINA TE AMO",
+    name: "A NORMAL HALLOWEEN BRUNCH PT.2",
     shortName: "The Normal",
     date: "Sábado, 25 de Octubre",
     time: "4:00 PM - 9:00 PM",
